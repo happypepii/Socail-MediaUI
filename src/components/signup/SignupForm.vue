@@ -8,14 +8,6 @@
       label-position="top"
       class="signup-form"
     >
-      <div class="form-row">
-        <el-form-item prop="firstName" label="First Name" class="half-width">
-          <el-input v-model="signupForm.firstName" prefix-icon="User" placeholder="First name" />
-        </el-form-item>
-        <el-form-item prop="lastName" label="Last Name" class="half-width">
-          <el-input v-model="signupForm.lastName" prefix-icon="User" placeholder="Last name" />
-        </el-form-item>
-      </div>
 
       <el-form-item prop="username" label="Username">
         <el-input v-model="signupForm.username" prefix-icon="User" placeholder="Choose a unique username" />
@@ -43,14 +35,15 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive } from 'vue';
+import { ElMessage } from 'element-plus';
+import axios from 'axios';
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const signupFormRef = ref(null)
 const loading = ref(false)
 const signupForm = reactive({
-  firstName: '',
-  lastName: '',
   username: '',
   email: '',
   password: '',
@@ -67,7 +60,20 @@ const validatePasswordConfirm = (rule, value, callback) => {
   }
 }
 
-const validateUsername = (rule, value, callback) => {
+const validateEmail = async (rule, value, callback) => {
+  try {
+    const response = await axios.get(`/api/auth/register/validateEmail?email=${value}`)
+    if (response.data.success){
+      callback()
+    } else {
+      callback(new Error('This email is already taken'))
+    }
+  } catch (err) {
+    callback(new Error('Could not validate email'))
+  }
+}
+
+const validateUsername = async (rule, value, callback) => {
   if (value === '') {
     callback(new Error('Please enter a username'))
   } else if (value.length < 3) {
@@ -75,20 +81,26 @@ const validateUsername = (rule, value, callback) => {
   } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
     callback(new Error('Username can only contain letters, numbers, and underscores'))
   } else {
-    setTimeout(() => {
-      const taken = ['admin', 'test', 'user']
-      taken.includes(value.toLowerCase()) ? callback(new Error('This username is already taken')) : callback()
-    }, 500)
+    // check if the username is already taken
+    try {
+      const res = await axios.get(`/api/auth/register/validateUsername?username=${value}`)
+      if (res.data.success) {
+        callback()
+      } else {
+        callback(new Error('This username is already taken'))
+      }
+    } catch (err) {
+      callback(new Error('Could not validate username'))
+    }
   }
 }
 
 const rules = {
-  firstName: [{ required: true, message: 'Please enter your first name', trigger: 'blur' }],
-  lastName: [{ required: true, message: 'Please enter your last name', trigger: 'blur' }],
   username: [{ validator: validateUsername, trigger: 'blur' }],
   email: [
     { required: true, message: 'Please enter your email', trigger: 'blur' },
-    { type: 'email', message: 'Invalid email address', trigger: 'blur' }
+    { type: 'email', message: 'Invalid email address', trigger: 'blur' },
+    { validator: validateEmail, trigger: 'blur'}
   ],
   password: [
     { required: true, message: 'Please enter a password', trigger: 'blur' },
@@ -98,14 +110,33 @@ const rules = {
 }
 
 const handleSignup = () => {
-  signupFormRef.value.validate((valid) => {
+  signupFormRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true
-      setTimeout(() => {
-        loading.value = false
+
+      try {
+        const response = await axios.post('/api/auth/register', {
+          username: signupForm.username,
+          email: signupForm.email,
+          password: signupForm.password
+        })
+
         ElMessage.success('Account created successfully!')
         signupFormRef.value.resetFields()
-      }, 2000)
+        
+        if(response.data.success) {
+          router.push('/login');
+        }
+      } catch (error) {
+        if (error.response && error.response.data) {
+          ElMessage.error(error.response.data)
+        } else {
+          ElMessage.error('Registration failed')
+        }
+      } finally {
+        loading.value = false
+      }
+
     } else {
       ElMessage.error('Please fix the form errors')
     }
