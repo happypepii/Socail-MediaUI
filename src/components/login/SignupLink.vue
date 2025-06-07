@@ -1,6 +1,6 @@
 <template>
   <div class="signup-link">
-    Don't have an account? <a href="#">Sign up</a>
+    Don't have an account? <a href="/signup">Sign up</a>
   </div>
 </template>
 <style scoped>

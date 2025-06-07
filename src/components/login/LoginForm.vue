@@ -4,12 +4,12 @@
 
     <el-form ref="loginFormRef" :model="loginForm" :rules="rules" label-position="top" class="login-form">
       <el-form-item prop="username" label="Username or Email">
-        <el-input v-model="loginForm.username" prefix-icon="User" placeholder="Enter your username or email" />
+        <el-input v-model="loginForm.username" prefix-icon="User" placeholder="Enter your username or email" class="input-with-padding" input-style="padding-left: 8px" />
       </el-form-item>
 
       <el-form-item prop="password" label="Password">
         <el-input v-model="loginForm.password" type="password" prefix-icon="Lock" placeholder="Enter your password"
-          show-password />
+          show-password class="input-with-padding" input-style="padding-left: 8px"/>
       </el-form-item>
 
       <div class="remember-forgot">
@@ -28,10 +28,12 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { userUserStore } from '@/stores/user'
+
+const userStore = userUserStore();
 
 const router = useRouter();
 const loginForm = reactive({
@@ -60,12 +62,17 @@ const handleLogin = () => {
       try {
         const response = await axios.post('/api/auth/login', {
           username: loginForm.username,
-          password: loginForm.password
+          password: loginForm.password,
+          rememberMe: loginForm.remember
         });
         if (response.data.success) {
           ElMessage({ message: 'Login successful!', type: 'success' });
-          // TODO: save user info into userStore
+          // save user info into userStore
+          const { token, user } = response.data.data;
+          userStore.setUser(token, user);
+
           console.log(response.data.data);
+          console.log(userStore.user);
           router.push('/home');
         } else {
           ElMessage({ message: response.data.message || 'Login failed!', type: 'error' });

@@ -10,19 +10,19 @@
     >
 
       <el-form-item prop="username" label="Username">
-        <el-input v-model="signupForm.username" prefix-icon="User" placeholder="Choose a unique username" />
+        <el-input v-model="signupForm.username" prefix-icon="User" placeholder="Choose a unique username" class="input-with-padding" input-style="padding-left: 8px" />
       </el-form-item>
 
       <el-form-item prop="email" label="Email Address">
-        <el-input v-model="signupForm.email" type="email" prefix-icon="Message" placeholder="Enter your email address" />
+        <el-input v-model="signupForm.email" type="email" prefix-icon="Message" placeholder="Enter your email address" class="input-with-padding" input-style="padding-left: 8px" />
       </el-form-item>
 
       <el-form-item prop="password" label="Password">
-        <el-input v-model="signupForm.password" type="password" prefix-icon="Lock" placeholder="Create a strong password" show-password />
+        <el-input v-model="signupForm.password" type="password" prefix-icon="Lock" placeholder="Create a strong password" show-password class="input-with-padding" input-style="padding-left: 8px" />
       </el-form-item>
 
       <el-form-item prop="confirmPassword" label="Confirm Password">
-        <el-input v-model="signupForm.confirmPassword" type="password" prefix-icon="Lock" placeholder="Confirm your password" show-password />
+        <el-input v-model="signupForm.confirmPassword" type="password" prefix-icon="Lock" placeholder="Confirm your password" show-password class="input-with-padding" input-style="padding-left: 8px" />
       </el-form-item>
 
       <el-form-item>
@@ -69,7 +69,7 @@ const validateEmail = async (rule, value, callback) => {
       callback(new Error('This email is already taken'))
     }
   } catch (err) {
-    callback(new Error('Could not validate email'))
+    callback(new Error('Could not validate email: '+ err.message))
   }
 }
 
@@ -90,7 +90,7 @@ const validateUsername = async (rule, value, callback) => {
         callback(new Error('This username is already taken'))
       }
     } catch (err) {
-      callback(new Error('Could not validate username'))
+      callback(new Error('Could not validate username: ' + err.message))
     }
   }
 }

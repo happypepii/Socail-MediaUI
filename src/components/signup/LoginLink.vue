@@ -1,6 +1,6 @@
 <template>
   <div class="login-link">
-    Already have an account? <a href="#">Log in</a>
+    Already have an account? <a href="/login">Log in</a>
   </div>
 </template>
 <style scoped>
